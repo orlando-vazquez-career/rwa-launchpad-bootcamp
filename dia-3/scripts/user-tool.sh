@@ -1,40 +1,53 @@
 #!/usr/bin/env bash
 # User tool — invocations signed by the investor / token holder.
-# Replace placeholders before running on testnet.
+# Usage: ./user-tool.sh <invest [amount]|balance|transfer [amount]|all>
+# Override any variable below via env vars (e.g. USER_KEY=carol ./user-tool.sh balance).
 
 set -euo pipefail
 
 NETWORK="${NETWORK:-testnet}"
 USER_KEY="${USER_KEY:-bob}"
-CONTRACT_ID="${CONTRACT_ID:-C...DEPLOYED_LAUNCHPAD_CONTRACT_ID...}"
+CONTRACT_ID="${CONTRACT_ID:-CALMIZEWORJQHR2G3354L255YLQ42JMV22LALN43EKBMSWFPTJWA7KEE}"
 RECIPIENT="${RECIPIENT:-G...RECIPIENT_PUBLIC_KEY...}"
+INVESTOR="$(stellar keys address "$USER_KEY")"
 
-echo "=== invest ==="
-stellar contract invoke \
-  --id "$CONTRACT_ID" \
-  --source "$USER_KEY" \
-  --network "$NETWORK" \
-  -- \
-  invest \
-  --investor "$(stellar keys address "$USER_KEY")" \
-  --payment_amount 500
+invoke() {
+  stellar contract invoke \
+    --id "$CONTRACT_ID" \
+    --source "$USER_KEY" \
+    --network "$NETWORK" \
+    -- \
+    "$@"
+}
 
-echo "=== balance ==="
-stellar contract invoke \
-  --id "$CONTRACT_ID" \
-  --source "$USER_KEY" \
-  --network "$NETWORK" \
-  -- \
-  balance \
-  --id "$(stellar keys address "$USER_KEY")"
+invest() {
+  # Variación: amounts below 500 payment-token units fail with AmountTooLow (#7).
+  echo "=== invest $1 ==="
+  invoke invest \
+    --investor "$INVESTOR" \
+    --payment_amount "$1"
+}
 
-echo "=== transfer RWA tokens ==="
-stellar contract invoke \
-  --id "$CONTRACT_ID" \
-  --source "$USER_KEY" \
-  --network "$NETWORK" \
-  -- \
-  transfer \
-  --from "$(stellar keys address "$USER_KEY")" \
-  --to "$RECIPIENT" \
-  --amount 10
+balance() {
+  echo "=== balance ==="
+  invoke balance --id "$INVESTOR"
+}
+
+transfer() {
+  echo "=== transfer $1 RWA tokens ==="
+  invoke transfer \
+    --from "$INVESTOR" \
+    --to "$RECIPIENT" \
+    --amount "$1"
+}
+
+case "${1:-}" in
+  invest) invest "${2:-500}" ;;
+  balance) balance ;;
+  transfer) transfer "${2:-10}" ;;
+  all) invest 500; balance; transfer 10 ;;
+  *)
+    echo "Usage: $0 <invest [amount]|balance|transfer [amount]|all>" >&2
+    exit 1
+    ;;
+esac
