@@ -15,11 +15,11 @@ stellar contract build
 
 | | |
 |---|---|
-| Contract ID | [`CALMIZEWORJQHR2G3354L255YLQ42JMV22LALN43EKBMSWFPTJWA7KEE`](https://stellar.expert/explorer/testnet/contract/CALMIZEWORJQHR2G3354L255YLQ42JMV22LALN43EKBMSWFPTJWA7KEE) |
+| Contract ID | [`CA42BHJ3P227BGMP4PHFOQTLCNJKWBHRH72A4ZTVVRWV4S5CUROL6BM2`](https://stellar.expert/explorer/testnet/contract/CA42BHJ3P227BGMP4PHFOQTLCNJKWBHRH72A4ZTVVRWV4S5CUROL6BM2) |
 | Token de pago | XLM nativo (SAC) `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`; 1 unidad = 1 stroop |
 | Admin (`alice`) | `GCO225B2PDA5IX3XPRQ5HASSAYNDQQTE3QY4KP7TFTLNIPN6IHCP2MVG` |
 | Inversionista (`bob`) | `GBE5C7II2ODGWTST3ASLOZM3CTOGF7HXXX42HSBW6QRIJG7L4GA3UGSZ` |
-| Inversión exitosa (500) | [`767951f6…d77b8b5`](https://stellar.expert/explorer/testnet/tx/767951f6831163a8d370368563decdbaeb4401377e08d47615ab11958d77b8b5) |
+| Inversión exitosa (500) | [`222bd9cc…5530229`](https://stellar.expert/explorer/testnet/tx/222bd9ccde51cd1f04ef0d18bbbf15468e430ba158b02d404b2f4a4125530229) |
 
 ## Flujo completo con los scripts
 
