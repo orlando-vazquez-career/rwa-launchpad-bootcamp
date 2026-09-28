@@ -4,10 +4,13 @@ import {
   Contract,
   TransactionBuilder,
   nativeToScVal,
+  // rpc must come from this entry: in the browser it resolves to a prebundled build, and
+  // "@stellar/stellar-sdk/rpc" would load a second stellar-base (assembleTransaction's
+  // `instanceof Transaction` check then fails).
+  rpc,
   scValToNative,
   xdr,
 } from "@stellar/stellar-sdk";
-import { Api, Server, assembleTransaction } from "@stellar/stellar-sdk/rpc";
 import { config, isContractConfigured } from "@/lib/config";
 import { toContractCallError } from "@/lib/errors";
 import { networkPassphrase } from "@/lib/stellar/network";
@@ -39,8 +42,8 @@ function requireContractId(): string {
   return config.contractId;
 }
 
-export function getRpcServer(): Server {
-  return new Server(config.sorobanRpcUrl, { allowHttp: false });
+export function getRpcServer(): rpc.Server {
+  return new rpc.Server(config.sorobanRpcUrl, { allowHttp: false });
 }
 
 function addressScVal(address: string): xdr.ScVal {
@@ -106,18 +109,18 @@ function parseAssetInfoNative(raw: unknown): AssetInfo {
 }
 
 async function pollTransaction(
-  server: Server,
+  server: rpc.Server,
   hash: string,
-): Promise<Api.GetSuccessfulTransactionResponse> {
+): Promise<rpc.Api.GetSuccessfulTransactionResponse> {
   const started = Date.now();
   const timeoutMs = 60_000;
 
   while (Date.now() - started < timeoutMs) {
     const tx = await server.getTransaction(hash);
-    if (tx.status === Api.GetTransactionStatus.SUCCESS) {
-      return tx as Api.GetSuccessfulTransactionResponse;
+    if (tx.status === rpc.Api.GetTransactionStatus.SUCCESS) {
+      return tx as rpc.Api.GetSuccessfulTransactionResponse;
     }
-    if (tx.status === Api.GetTransactionStatus.FAILED) {
+    if (tx.status === rpc.Api.GetTransactionStatus.FAILED) {
       throw new Error(
         `Transaction failed on-chain: ${JSON.stringify(tx, null, 2)}`,
       );
@@ -147,10 +150,10 @@ async function simulateRead<T>(
     .build();
 
   const simulated = await server.simulateTransaction(tx);
-  if (Api.isSimulationError(simulated)) {
+  if (rpc.Api.isSimulationError(simulated)) {
     throw new Error(simulated.error);
   }
-  if (!Api.isSimulationSuccess(simulated) || !simulated.result) {
+  if (!rpc.Api.isSimulationSuccess(simulated) || !simulated.result) {
     throw new Error("Simulation did not return a result.");
   }
 
@@ -178,16 +181,16 @@ async function invoke(
     .build();
 
   const simulated = await server.simulateTransaction(built);
-  if (Api.isSimulationError(simulated)) {
+  if (rpc.Api.isSimulationError(simulated)) {
     throw new Error(simulated.error);
   }
-  if (Api.isSimulationRestore(simulated)) {
+  if (rpc.Api.isSimulationRestore(simulated)) {
     throw new Error(
       "Account or contract data needs restore before this call. Fund/restore via Freighter or Friendbot, then retry.",
     );
   }
 
-  const prepared = assembleTransaction(built, simulated).build();
+  const prepared = rpc.assembleTransaction(built, simulated).build();
   const signedXdr = await signTransaction(prepared.toXDR(), {
     networkPassphrase: passphrase,
     address: signerAddress,
